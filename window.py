@@ -1,30 +1,19 @@
-from tkinter import Tk, BOTH, Canvas
+from tkinter import *
+from tkinter import ttk
 
 
 class Window:
     def __init__(self, width, height) -> None:
         self.__root = Tk()
         self.__root.title("Maze Solver")
-        self.__root.geometry(f"{width}x{height}")
-        self.__canvas = Canvas()
-        self.__canvas.pack()
-        self.__running = False
-        self.__root.protocol("WM_DELETE_WINDOW", self.close)
 
-    def redraw(self):
-        self.__root.update_idletasks()
-        self.__root.update()
+        self.__mainframe = ttk.Frame(self.__root, padding="100 100 10 10")
+        self.__mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 
-    def wait_for_close(self):
-        self.__running = True
-        while self.__running:
-            self.redraw()
+        self.__root.columnconfigure(0, weight=1)
+        self.__root.rowconfigure(0, weight=1)
 
-    def close(self):
-        self.__running = False
+        ttk.Label(self.__mainframe, text="THIS IS TEXT").grid(column=1, row=1, sticky=W)
 
-    def get_root_size(self):
-        return self.__root.winfo_geometry()
-
-    def get_canv_size(self):
-        return self.__canvas.winfo_geometry()
+    def mainloop(self):
+        self.__root.mainloop()

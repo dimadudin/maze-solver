@@ -7,13 +7,7 @@ class Window:
         self.__root = Tk()
         self.__root.title("Maze Solver")
 
-        self.__mainframe = ttk.Frame(self.__root, padding="100 100 10 10")
-        self.__mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-
-        self.__root.columnconfigure(0, weight=1)
-        self.__root.rowconfigure(0, weight=1)
-
-        ttk.Label(self.__mainframe, text="THIS IS TEXT").grid(column=1, row=1, sticky=W)
+        self.__mainframe = ttk.Frame(self.__root, width=width, height=height).grid()
 
     def mainloop(self):
         self.__root.mainloop()

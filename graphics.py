@@ -1,4 +1,5 @@
 from tkinter import Tk, Canvas, N, W, E, S
+import random
 import time
 
 
@@ -18,7 +19,6 @@ class Window:
         cell_size = min(self.w // (row_n + 2), self.h // (col_m + 2))
         x0, y0 = cell_size, cell_size
         maze = Maze(Point(x0, y0), row_n, col_m, cell_size, self)
-        maze.draw_cells()
 
         self.__root.mainloop()
 
@@ -62,7 +62,7 @@ class Cell:
     def draw(self, window):
         colors = []
         for border in [self.lb, self.bb, self.rb, self.tb]:
-            if border is True:
+            if border:
                 colors.append("black")
             else:
                 colors.append("#D9D9D9")
@@ -71,14 +71,18 @@ class Cell:
         Line(self.bl, self.br, fill=colors[1]).draw(window)
         Line(self.br, self.tr, fill=colors[2]).draw(window)
         Line(self.tr, self.tl, fill=colors[3]).draw(window)
-        window.redraw()
-        time.sleep(0.0075)
 
 
 class Maze:
-    def __init__(self, p0, row_n, col_m, cell_size, window=None):
-        self.cells = self._create_cells(p0, row_n, col_m, cell_size)
+    def __init__(self, p0, row_n, col_n, cell_size, window=None, seed=None):
+        self._row_n, self._col_n = row_n, col_n
+        self._cells = self._create_cells(p0, row_n, col_n, cell_size)
         self.window = window
+        if seed:
+            random.seed(seed)
+        self._draw_cells()
+        self.break_st_end()
+        self._break_walls_r(0, 0)
 
     def _create_cells(self, p0, row_n, col_m, cell_size):
         curr_p0 = Point(p0.x, p0.y)
@@ -98,15 +102,56 @@ class Maze:
             curr_p1.y = curr_p0.y + cell_size
         return cols
 
-    def draw_cells(self):
-        for col in self.cells:
+    def _draw_cells(self):
+        for col in self._cells:
             for cell in col:
                 cell.draw(self.window)
+                self._animate()
+
+    def _draw_cell(self, i, j):
+        self._cells[i][j].draw(self.window)
+        self._animate()
+
+    def _animate(self):
+        if self.window:
+            self.window.redraw()
+        time.sleep(0.02)
 
     def break_st_end(self):
-        self.cells[0][0].tb = False
-        self.cells[-1][-1].bb = False
-        self.draw_cells()
+        self._cells[0][0].tb = False
+        self._draw_cell(0, 0)
+        self._cells[-1][-1].bb = False
+        self._draw_cell(-1, -1)
 
-    def break_walls(self):
-        pass
+    def _break_walls_r(self, i, j):
+        self._cells[i][j].visited = True
+        while True:
+            to_visit = []
+            if i > 0 and not self._cells[i - 1][j].visited:
+                to_visit.append((i - 1, j))
+            if i < self._col_n - 1 and not self._cells[i + 1][j].visited:
+                to_visit.append((i + 1, j))
+            if j > 0 and not self._cells[i][j - 1].visited:
+                to_visit.append((i, j - 1))
+            if j < self._row_n - 1 and not self._cells[i][j + 1].visited:
+                to_visit.append((i, j + 1))
+            if not to_visit:
+                self._draw_cell(i, j)
+                return
+
+            next_index = random.choice(to_visit)
+
+            if next_index[0] == i + 1:
+                self._cells[i][j].rb = False
+                self._cells[i + 1][j].lb = False
+            if next_index[0] == i - 1:
+                self._cells[i][j].lb = False
+                self._cells[i - 1][j].rb = False
+            if next_index[1] == j + 1:
+                self._cells[i][j].bb = False
+                self._cells[i][j + 1].tb = False
+            if next_index[1] == j - 1:
+                self._cells[i][j].tb = False
+                self._cells[i][j - 1].bb = False
+
+            self._break_walls_r(next_index[0], next_index[1])

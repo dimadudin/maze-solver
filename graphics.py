@@ -1,4 +1,5 @@
 from tkinter import Tk, Canvas, N, W, E, S
+import time
 
 
 class Window:
@@ -16,10 +17,19 @@ class Window:
     def start_maze(self, row_n, col_m):
         cell_size = min(self.w // (row_n + 2), self.h // (col_m + 2))
         x0, y0 = cell_size, cell_size
-        maze = Maze(Point(x0, y0), row_n, col_m, cell_size, self.__canvas)
+        maze = Maze(Point(x0, y0), row_n, col_m, cell_size, self)
         maze.draw_cells()
-        maze.break_st_end()
 
+        self.__root.mainloop()
+
+    def draw_line(self, *args, **kwargs):
+        self.__canvas.create_line(*args, **kwargs)
+
+    def redraw(self):
+        self.__root.update_idletasks()
+        self.__root.update()
+
+    def mainloop(self):
         self.__root.mainloop()
 
 
@@ -35,8 +45,8 @@ class Line:
         self.p1 = p1
         self.fill = fill
 
-    def draw(self, canvas):
-        canvas.create_line(
+    def draw(self, window):
+        window.draw_line(
             self.p0.x, self.p0.y, self.p1.x, self.p1.y, fill=self.fill, width=4
         )
 
@@ -49,7 +59,7 @@ class Cell:
         self.rb, self.tb = True, True
         self.visited = False
 
-    def draw(self, canvas):
+    def draw(self, window):
         colors = []
         for border in [self.lb, self.bb, self.rb, self.tb]:
             if border is True:
@@ -57,16 +67,18 @@ class Cell:
             else:
                 colors.append("#D9D9D9")
 
-        Line(self.tl, self.bl, fill=colors[0]).draw(canvas)
-        Line(self.bl, self.br, fill=colors[1]).draw(canvas)
-        Line(self.br, self.tr, fill=colors[2]).draw(canvas)
-        Line(self.tr, self.tl, fill=colors[3]).draw(canvas)
+        Line(self.tl, self.bl, fill=colors[0]).draw(window)
+        Line(self.bl, self.br, fill=colors[1]).draw(window)
+        Line(self.br, self.tr, fill=colors[2]).draw(window)
+        Line(self.tr, self.tl, fill=colors[3]).draw(window)
+        window.redraw()
+        time.sleep(0.0075)
 
 
 class Maze:
-    def __init__(self, p0, row_n, col_m, cell_size, canvas):
+    def __init__(self, p0, row_n, col_m, cell_size, window=None):
         self.cells = self._create_cells(p0, row_n, col_m, cell_size)
-        self.canvas = canvas
+        self.window = window
 
     def _create_cells(self, p0, row_n, col_m, cell_size):
         curr_p0 = Point(p0.x, p0.y)
@@ -89,9 +101,12 @@ class Maze:
     def draw_cells(self):
         for col in self.cells:
             for cell in col:
-                cell.draw(self.canvas)
+                cell.draw(self.window)
 
     def break_st_end(self):
         self.cells[0][0].tb = False
         self.cells[-1][-1].bb = False
         self.draw_cells()
+
+    def break_walls(self):
+        pass
